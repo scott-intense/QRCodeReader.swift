@@ -55,6 +55,29 @@ public class QRCodeReaderViewController: UIViewController {
   }
 
   // MARK: - Creating the View Controller
+    private func commonInit(_ cancelTitle:String) {
+        view.backgroundColor = .black
+        
+        codeReader.didFindCode = { [weak self] resultAsObject in
+            if let weakSelf = self {
+                if let qrv = weakSelf.readerView.displayable as? QRCodeReaderView {
+                    qrv.addGreenBorder()
+                }
+                weakSelf.completionBlock?(resultAsObject)
+                weakSelf.delegate?.reader(weakSelf, didScanResult: resultAsObject)
+            }
+        }
+        
+        codeReader.didFailDecoding = { [weak self] in
+            if let weakSelf = self {
+                if let qrv = weakSelf.readerView.displayable as? QRCodeReaderView {
+                    qrv.addRedBorder()
+                }
+            }
+        }
+        
+        setupUIComponentsWithCancelButtonTitle(cancelTitle)
+    }
 
   /**
    Initializes a view controller using a builder.
@@ -72,41 +95,21 @@ public class QRCodeReaderViewController: UIViewController {
     customPreferredStatusBarStyle = builder.preferredStatusBarStyle
 
     super.init(nibName: nil, bundle: nil)
-
-    view.backgroundColor = .black
-
-    codeReader.didFindCode = { [weak self] resultAsObject in
-      if let weakSelf = self {
-        if let qrv = weakSelf.readerView.displayable as? QRCodeReaderView {
-          qrv.addGreenBorder()
-        }
-        weakSelf.completionBlock?(resultAsObject)
-        weakSelf.delegate?.reader(weakSelf, didScanResult: resultAsObject)
-      }
-    }
-
-    codeReader.didFailDecoding = { [weak self] in
-      if let weakSelf = self {
-        if let qrv = weakSelf.readerView.displayable as? QRCodeReaderView {
-          qrv.addRedBorder()
-        }
-      }
-    }
-
-    setupUIComponentsWithCancelButtonTitle(builder.cancelButtonTitle)
+    commonInit(builder.cancelButtonTitle);
   }
 
   required public init?(coder aDecoder: NSCoder) {
     codeReader                    = QRCodeReader()
     readerView                    = QRCodeReaderContainer(displayable: QRCodeReaderView())
-    startScanningAtLoad           = false
-    showCancelButton              = false
+    startScanningAtLoad           = true
+    showCancelButton              = true
     showTorchButton               = false
-    showSwitchCameraButton        = false
-    showOverlayView               = false
+    showSwitchCameraButton        = true
+    showOverlayView               = true
     customPreferredStatusBarStyle = nil
 
-    super.init(coder: aDecoder)
+    super.init(nibName: nil, bundle: nil)
+    commonInit("Done")
   }
 
   // MARK: - Responding to View Events
